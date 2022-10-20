@@ -17,10 +17,13 @@ def main():
         }
         summoner_with_details.append(summoner_data)
     summoner_matchs = {}
+    print("----- Match List ----")
     for summoner in summoner_with_details:
+        print(f"From summoner {summoner['summoner_data']['summonerName']}")
         keep_request = True
         request_index = 0
         while(keep_request):
+            print(f"Range {request_index} to {request_index + 100}")
             match_id_list = league_of_legends_service.fetch_summoners_match_ids(
                 summoner=summoner['summoner_detail'],
                 request_index=request_index
@@ -30,9 +33,10 @@ def main():
             else:
                 summoner_matchs[summoner["summoner_data"]["summonerId"]].extend(match_id_list)
             request_index += 100
-            if len(match_id_list) == 0:
+            if len(match_id_list) == 0 or request_index > 300:
                 keep_request = False
-            
+                
+    summoner_matchs
         
     
 
