@@ -5,11 +5,10 @@ from tqdm import tqdm
 
 class APIService:
 
-    MAX_MATCHES = 2
-    CHUNK_SIZE = 2
-
-    def __init__(self, league_of_legends_repository: LeagueOfLegendsRepository) -> None:
+    def __init__(self, league_of_legends_repository: LeagueOfLegendsRepository, max_matches = 200, chunk_size = 100) -> None:
         self.league_of_legends_repository = league_of_legends_repository
+        self.max_matches = max_matches
+        self.chunk_size = chunk_size
 
     def fetch_summoner_data(self, limit: int = None) -> List:
         summoners_list = self.league_of_legends_repository.fetch_challengers_summoners()
@@ -34,13 +33,15 @@ class APIService:
             summoner_matches = self.__search_summoner_match_ids(
                 summoner_matches, summoner, limit
             )
-        return summoner_matches
+        for summoner_data in summoner_with_details:
+            summoner_data["matches"] = summoner_matches[summoner_data["summoner_data"]["summonerId"]]
+        return summoner_with_details
 
     def __search_summoner_match_ids(self, summoner_matches, summoner, limit=None):
         print(f"From summoner {summoner['summoner_data']['summonerName']}")
         request_index = 0
-        while request_index < self.MAX_MATCHES:
-            print(f"Range {request_index} to {request_index + self.CHUNK_SIZE}")
+        while request_index < self.max_matches:
+            print(f"Range {request_index} to {request_index + self.chunk_size}")
             match_id_list = self.league_of_legends_repository.fetch_summoners_match_ids(
                 summoner=summoner["summoner_detail"],
                 request_index=request_index,
@@ -54,7 +55,7 @@ class APIService:
                 summoner_matches,
                 self.__fetch_match_detail(match_id_list),
             )
-            request_index += self.CHUNK_SIZE
+            request_index += self.chunk_size
             if len(match_id_list) == 0:
                 request_index = 400
         return summoner_matches
