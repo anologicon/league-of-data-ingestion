@@ -1,11 +1,18 @@
 from repository.league_of_legends_repository import LeagueOfLegendsRepository
 from typing import List
 from tqdm import tqdm
+from repository.data_writer.writer_interface import WriterInterface
+import re
+import requests
 
 
 class APIService:
-
-    def __init__(self, league_of_legends_repository: LeagueOfLegendsRepository, max_matches = 200, chunk_size = 100) -> None:
+    def __init__(
+        self,
+        league_of_legends_repository: LeagueOfLegendsRepository,
+        max_matches=200,
+        chunk_size=100,
+    ) -> None:
         self.league_of_legends_repository = league_of_legends_repository
         self.max_matches = max_matches
         self.chunk_size = chunk_size
@@ -18,26 +25,29 @@ class APIService:
 
         summoner_with_details = []
         for summoner in tqdm(summoners_list, desc="Summoner details"):
-            summoner_data = {
-                "summoner_detail": self.league_of_legends_repository.fetch_summoner_details(
-                    summoner
-                ),
-                "summoner_data": summoner,
-            }
-            summoner_with_details.append(summoner_data)
+            if self.__summoner_has_special_characters(summoner["summonerName"]):
+                continue
+            try:
+                summoner_data = {
+                    "summoner_detail": self.league_of_legends_repository.fetch_summoner_details(
+                        summoner
+                    ),
+                    "summoner_data": summoner,
+                }
+                summoner_with_details.append(summoner_data)
+            except requests.exceptions.HTTPError as e:
+                continue
         return summoner_with_details
 
-    def fetch_summoner_match(self, summoner_with_details: List, limit=None):
-        summoner_matches = {}
+    def fetch_summoner_match(
+        self, summoner_with_details: List, writer: WriterInterface, limit=None
+    ):
         for summoner in tqdm(summoner_with_details, desc="Summoner Matchs"):
-            summoner_matches = self.__search_summoner_match_ids(
-                summoner_matches, summoner, limit
-            )
-        for summoner_data in summoner_with_details:
-            summoner_data["matches"] = summoner_matches[summoner_data["summoner_data"]["summonerId"]]
-        return summoner_with_details
+            summoner["matches"] = self.__search_summoner_match_ids(summoner, limit)
+            writer.write(summoner)
 
-    def __search_summoner_match_ids(self, summoner_matches, summoner, limit=None):
+    def __search_summoner_match_ids(self, summoner, limit=None):
+        summoner_matches = {}
         print(f"From summoner {summoner['summoner_data']['summonerName']}")
         request_index = 0
         while request_index < self.max_matches:
@@ -65,12 +75,21 @@ class APIService:
         for match_id in match_ids:
             match_details.append(
                 {
-                    "match_data": self.league_of_legends_repository.fetch_match_data(match_id),
-                    "match_time_line": self.league_of_legends_repository.fetch_match_time_line(match_id),
-                    
+                    "match_data": self.league_of_legends_repository.fetch_match_data(
+                        match_id
+                    ),
+                    "match_time_line": self.league_of_legends_repository.fetch_match_time_line(
+                        match_id
+                    ),
                 }
             )
         return match_details
+
+    def __summoner_has_special_characters(self, summoner_name: str):
+        regex = re.compile("[@_!#$%^&*()<>?/\|}{~:]")
+        if regex.search(summoner_name) != None:
+            return True
+        return False
 
     def __new_or_add_matches_from_summoner(
         self, summonerId, summoner_matches, match_id_list

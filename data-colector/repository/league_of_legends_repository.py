@@ -28,12 +28,14 @@ class LeagueOfLegendsRepository:
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_match_data(self, match_id: int) -> List:
         return self.request_service.americas_request(self.MATCH_DATA.format(match_id))
-    
+
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
     @ratelimit.limits(calls=250, period=10)
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_match_time_line(self, match_id: int) -> List:
-        return self.request_service.americas_request(self.MATCH_TIME_LINE.format(match_id))
+        return self.request_service.americas_request(
+            self.MATCH_TIME_LINE.format(match_id)
+        )
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
     @ratelimit.limits(calls=29, period=30)
@@ -45,7 +47,6 @@ class LeagueOfLegendsRepository:
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
     @ratelimit.limits(calls=1600, period=60)
-    @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_summoner_details(self, summoner):
         return self.request_service.brazil_request(
             self.SUMMONER_DATA.format(summoner["summonerName"])
