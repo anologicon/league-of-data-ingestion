@@ -77,10 +77,7 @@ class APIService:
                 {
                     "match_data": self.league_of_legends_repository.fetch_match_data(
                         match_id
-                    ),
-                    "match_time_line": self.league_of_legends_repository.fetch_match_time_line(
-                        match_id
-                    ),
+                    )
                 }
             )
         return match_details
