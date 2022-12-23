@@ -4,6 +4,7 @@ from tqdm import tqdm
 from repository.data_writer.writer_interface import WriterInterface
 import re
 import requests
+import datetime
 
 
 class APIService:
@@ -44,10 +45,10 @@ class APIService:
     ):
         for summoner in tqdm(summoner_with_details, desc="Summoner Matchs"):
             summoner["matches"] = self.__search_summoner_match_ids(summoner, limit)
-            writer.write(summoner)
+            writer.write(f'summoners/summoner={summoner["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}', summoner)
 
     def __search_summoner_match_ids(self, summoner, limit=None):
-        summoner_matches = {}
+        summoner_matches_id = []
         print(f"From summoner {summoner['summoner_data']['summonerName']}")
         request_index = 0
         while request_index < self.max_matches:
@@ -60,15 +61,12 @@ class APIService:
             if limit:
                 match_id_list = match_id_list[:limit]
 
-            summoner_matches = self.__new_or_add_matches_from_summoner(
-                summoner["summoner_data"]["summonerId"],
-                summoner_matches,
-                self.__fetch_match_detail(match_id_list),
-            )
+            summoner_matches_id.extend(match_id_list)
+
             request_index += self.chunk_size
             if len(match_id_list) == 0:
                 request_index = 400
-        return summoner_matches
+        return summoner_matches_id
 
     def __fetch_match_detail(self, match_ids) -> List:
         match_details = []

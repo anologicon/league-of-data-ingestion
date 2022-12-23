@@ -5,7 +5,11 @@ from pyspark.sql import functions as F
 from pyspark.sql.functions import regexp_extract
 from functools import partial
 
-spark = SparkSession.builder.appName("ToParquetLeagueOfData").master("spark://spark-master:7077").getOrCreate()
+spark = (
+    SparkSession.builder.appName("ToParquetLeagueOfData")
+    .master("spark://spark-master:7077")
+    .getOrCreate()
+)
 spark.sparkContext.setLogLevel("ERROR")
 sc = spark
 hadoop_conf = sc._jsc.hadoopConfiguration()

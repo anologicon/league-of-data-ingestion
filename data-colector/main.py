@@ -10,8 +10,8 @@ from repository.data_writer.minio_writer import MinioWriter
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-MAX_MATCHES = 10
-CHUNK_SIZE = 10
+MAX_MATCHES = 100
+CHUNK_SIZE = 50
 
 
 def main():
@@ -19,10 +19,10 @@ def main():
     api_service = APIService(
         LeagueOfLegendsRepository(BaseRequestService()), MAX_MATCHES, CHUNK_SIZE
     )
-    summoners_data_list = api_service.fetch_summoner_data(limit=100)
+    summoners_data_list = api_service.fetch_summoner_data(limit=200)
     print("----- Match List ----")
     summoners_data_list = api_service.fetch_summoner_match(
-        summoners_data_list, MinioWriter(), limit=10
+        summoners_data_list, MinioWriter("league-of-data-raw")
     )
 
 

@@ -7,7 +7,8 @@ from .writer_interface import WriterInterface
 
 
 class MinioWriter(WriterInterface):
-    def __init__(self):
+    def __init__(self, bucket_name: str):
+        self.bucket = bucket_name
         self.tempfile = NamedTemporaryFile()
         self.client = boto3.client(
             "s3",
@@ -19,11 +20,11 @@ class MinioWriter(WriterInterface):
             verify=False,
         )
 
-    def write(self, summoner_data: List):
-        file_name = f'summoners/summoner={summoner_data["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner_data["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}.json'
-        self._write_to_file(summoner_data)
+    def write(self, file_path: str, json_data: [List, dict]):
+        file_name = f'{file_path}.json'
+        self._write_to_file(json_data)
         self.client.put_object(
-            Body=self.tempfile, Bucket="league-of-data-raw", Key=file_name
+            Body=self.tempfile, Bucket=self.bucket, Key=file_name
         )
 
     def _write_row(self, row: str) -> None:

@@ -5,14 +5,21 @@ from pyspark.sql import functions as F
 from pyspark.sql.functions import regexp_extract
 from functools import partial
 
-spark = SparkSession.builder.appName("ToParquetLeagueOfData").master("spark://localhost:7077") \
-    .config("spark.jars.packages", "com.amazonaws:aws-java-sdk:1.11.563,com.amazonaws:aws-java-sdk-bundle:1.11.874,org.apache.hadoop:hadoop-aws:3.3.2") \
-    .config("spark.hadoop.fs.s3a.multipart.size", "838860800") \
-    .config('spark.hadoop.fs.s3a.aws.credentials.provider', 'org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider') \
+spark = (
+    SparkSession.builder.appName("ToParquetLeagueOfData")
+    .master("spark://localhost:7077")
     .config(
-        "spark.hadoop.fs.s3a.path.style.access",
-        True
-    ).getOrCreate()
+        "spark.jars.packages",
+        "com.amazonaws:aws-java-sdk:1.11.563,com.amazonaws:aws-java-sdk-bundle:1.11.874,org.apache.hadoop:hadoop-aws:3.3.2",
+    )
+    .config("spark.hadoop.fs.s3a.multipart.size", "838860800")
+    .config(
+        "spark.hadoop.fs.s3a.aws.credentials.provider",
+        "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
+    )
+    .config("spark.hadoop.fs.s3a.path.style.access", True)
+    .getOrCreate()
+)
 spark.sparkContext.setLogLevel("ERROR")
 sc = spark
 hadoop_conf = sc._jsc.hadoopConfiguration()
