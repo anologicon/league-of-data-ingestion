@@ -46,11 +46,15 @@ class LeagueOfLegendsRepository:
         ]
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
-    @ratelimit.limits(calls=1600, period=60)
+    @ratelimit.limits(calls=1600, period=1)
     def fetch_summoner_details(self, summoner):
-        return self.request_service.brazil_request(
-            self.SUMMONER_DATA.format(summoner["summonerName"])
-        )
+        try:
+            return self.request_service.brazil_request(
+                self.SUMMONER_DATA.format(summoner["summonerName"])
+            )
+        except requests.exceptions.HTTPError as e:
+            if e.response.status_code == 404:
+                return None
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
     @ratelimit.limits(calls=250, period=10)

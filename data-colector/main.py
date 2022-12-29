@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 MAX_MATCHES = 100
-CHUNK_SIZE = 50
+CHUNK_SIZE = 5
 
 
 def main():
@@ -24,6 +24,8 @@ def main():
     summoners_data_list = api_service.fetch_summoner_match(
         summoners_data_list, MinioWriter("league-of-data-raw")
     )
+    matchs_unique = api_service.filter_unique_match_id(summoners_data_list)
+    api_service.fetch_match_detail(matchs_unique, MinioWriter("league-of-data-raw"))
 
 
 if __name__ == "__main__":

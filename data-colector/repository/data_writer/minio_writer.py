@@ -21,11 +21,9 @@ class MinioWriter(WriterInterface):
         )
 
     def write(self, file_path: str, json_data: [List, dict]):
-        file_name = f'{file_path}.json'
+        file_name = f"{file_path}.json"
         self._write_to_file(json_data)
-        self.client.put_object(
-            Body=self.tempfile, Bucket=self.bucket, Key=file_name
-        )
+        self.client.put_object(Body=self.tempfile, Bucket=self.bucket, Key=file_name)
 
     def _write_row(self, row: str) -> None:
         with open(self.tempfile.name, "a") as f:
