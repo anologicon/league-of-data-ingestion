@@ -22,15 +22,16 @@ class LeagueOfLegendsRepository:
     MATCH_TIME_LINE = "match/v5/matches/{}/timeline"
     SUMMONER_DATA = "summoner/v4/summoners/by-name/{}"
     MATCHES_IDS = "match/v5/matches/by-puuid/{}/ids?type=ranked&start={}&count={}"
+    CHAMPIONS_MASTERY = "champion-mastery/v4/champion-masteries/by-summoner/{}"
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
-    @ratelimit.limits(calls=250, period=10)
+    @ratelimit.limits(calls=250, period=1)
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_match_data(self, match_id: int) -> List:
         return self.request_service.americas_request(self.MATCH_DATA.format(match_id))
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
-    @ratelimit.limits(calls=250, period=10)
+    @ratelimit.limits(calls=250, period=1)
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_match_time_line(self, match_id: int) -> List:
         return self.request_service.americas_request(
@@ -38,7 +39,7 @@ class LeagueOfLegendsRepository:
         )
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
-    @ratelimit.limits(calls=29, period=30)
+    @ratelimit.limits(calls=29, period=1)
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_challengers_summoners(self) -> List:
         return self.request_service.brazil_request(self.RANKED_SOLO_5x5_BASE_ENDPOINT)[
@@ -57,11 +58,19 @@ class LeagueOfLegendsRepository:
                 return None
 
     @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
-    @ratelimit.limits(calls=250, period=10)
+    @ratelimit.limits(calls=250, period=1)
     @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
     def fetch_summoners_match_ids(
         self, summoner, request_index=0, max_return=100
     ) -> List:
         return self.request_service.americas_request(
             self.MATCHES_IDS.format(summoner["puuid"], request_index, max_return)
+        )
+
+    @on_exception(expo, ratelimit.exception.RateLimitException, max_tries=10)
+    @ratelimit.limits(calls=2000, period=1)
+    @on_exception(expo, requests.exceptions.HTTPError, max_tries=10)
+    def fetch_summoners_champions_mastery(self, summoner) -> List:
+        return self.request_service.brazil_request(
+            self.CHAMPIONS_MASTERY.format(summoner["id"])
         )

@@ -5,7 +5,6 @@ from repository.data_writer.writer_interface import WriterInterface
 import re
 import requests
 import datetime
-from concurrent import futures
 import os
 from random import randint
 import time
@@ -29,78 +28,29 @@ class APIService:
             summoners_list = summoners_list[:limit]
 
         summoner_with_details = []
-        hash_table = {}
-        with futures.ThreadPoolExecutor() as executor:
-            to_do = []
-            for summoner in summoners_list:
-                hash_table[summoner["summonerName"]] = None
-                if self.__summoner_has_special_characters(summoner["summonerName"]):
-                    continue
-                future = executor.submit(
-                    self.league_of_legends_repository.fetch_summoner_details,
-                    summoner,
-                )
-                to_do.append(future)
-            results = []
-            for future in tqdm(
-                futures.as_completed(to_do),
-                total=len(summoners_list),
-                desc="Summoner details",
-            ):
-                res = future.result()
-                results.append(res)
-
-            for summoner_with_detail in results:
-                if summoner_with_detail != None:
-                    hash_table[summoner_with_detail["name"]] = summoner_with_detail
-
-            executor.shutdown()
-
-        for summoner in summoners_list:
-            if hash_table[summoner["summonerName"]] != None:
-                summoner_data = {
-                    "summoner_detail": hash_table[summoner["summonerName"]],
+        for summoner in tqdm(summoners_list, desc="Fetch Summoner Details"):
+            if self.__summoner_has_special_characters(summoner["summonerName"]):
+                continue
+            summoner_with_detail = (
+                self.league_of_legends_repository.fetch_summoner_details(summoner)
+            )
+            if summoner_with_detail == None:
+                continue
+            summoner_with_details.append(
+                {
+                    "summoner_detail": summoner_with_detail,
                     "summoner_data": summoner,
                 }
-                summoner_with_details.append(summoner_data)
-
+            )
         return summoner_with_details
 
     def fetch_summoner_match(
         self, summoner_with_details: List, writer: WriterInterface, limit=None
     ):
-        hash_table = {}
-        with futures.ThreadPoolExecutor() as executor:
-            to_do = []
-            for summoner in summoner_with_details:
-                future = executor.submit(
-                    self.__search_summoner_match_ids, summoner, limit
-                )
-                to_do.append(future)
-            results = []
-            for future in tqdm(
-                futures.as_completed(to_do),
-                total=len(summoner_with_details),
-                desc="Summoner matchs ids",
-            ):
-                res = future.result()
-                results.append(res)
-
-            for match in results:
-                if match != None:
-                    hash_table[match["summoner_id"]] = match["matches"]
-            
-            executor.shutdown()
-            
-
-        for summoner in summoner_with_details:
-            if hash_table[summoner["summoner_detail"]["puuid"]] == None:
-                continue
-
-            summoner["matches"] = hash_table[summoner["summoner_detail"]["puuid"]]
-
+        for summoner in tqdm(summoner_with_details, desc="Fetch Summoner Matchs Id's"):
+            summoner["matches"] = self.__search_summoner_match_ids(summoner, limit)
             writer.write(
-                f'summoners/summoner={summoner["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
+                f'summoners/details/summoner={summoner["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
                 summoner,
             )
         return summoner_with_details
@@ -122,10 +72,7 @@ class APIService:
             request_index += self.chunk_size
             if len(match_id_list) == 0:
                 request_index = 400
-        return {
-            "summoner_id": summoner["summoner_detail"]["puuid"],
-            "matches": summoner_matches_id,
-        }
+        return summoner_matches_id
 
     def filter_unique_match_id(self, summoner_with_details_list: List) -> List:
         all_match_list = [
@@ -134,14 +81,37 @@ class APIService:
         return list(dict.fromkeys(all_match_list))
 
     def fetch_match_detail(self, match_ids, writer: WriterInterface) -> List:
-        match_details = []
-        for match_id in tqdm(match_ids, desc="Fetch Match Details"):
-            match_details = self.league_of_legends_repository.fetch_match_data(
+        for match_id in tqdm(self.filter_unique_match_id(match_ids), desc="Fetch Match Details"):
+            match_details = self.league_of_legends_repository.fetch_match_data(match_id)
+            writer.write(
+                f'matchs/detail/match={match_id}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{match_id}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
+                match_details,
+            )
+
+    def fetch_match_timeline(self, match_ids, writer: WriterInterface) -> List:
+        for match_id in tqdm(self.filter_unique_match_id(match_ids), desc="Fetch Match Timeline"):
+            match_timeline = self.league_of_legends_repository.fetch_match_time_line(
                 match_id
             )
             writer.write(
-                f'matchs/match={match_id}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{match_id}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
-                match_details)
+                f'matchs/timeline/match={match_id}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{match_id}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
+                match_timeline,
+            )
+
+    def fetch_summoner_mastery(
+        self, summoner_with_details: List, writer: WriterInterface
+    ) -> List:
+        for summoner in tqdm(summoner_with_details, desc="Fetch Summoners Mastery"):
+            summoner_detail = summoner["summoner_detail"]
+            summoner_mastery_data = (
+                self.league_of_legends_repository.fetch_summoners_champions_mastery(
+                    summoner_detail
+                )
+            )
+            writer.write(
+                f'summoners/mastery/summoner={summoner["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
+                summoner,
+            )
 
     def __summoner_has_special_characters(self, summoner_name: str):
         regex = re.compile("[@_!#$%^&*()<>?/\|}{~:]")

@@ -6,11 +6,12 @@ import pandas as pd
 import json
 from repository.data_writer.local_writer import LocalWriter
 from repository.data_writer.minio_writer import MinioWriter
+from concurrent import futures
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-MAX_MATCHES = 100
+MAX_MATCHES = 10
 CHUNK_SIZE = 5
 
 
@@ -19,13 +20,24 @@ def main():
     api_service = APIService(
         LeagueOfLegendsRepository(BaseRequestService()), MAX_MATCHES, CHUNK_SIZE
     )
+    writer = MinioWriter("league-of-data-raw")
     summoners_data_list = api_service.fetch_summoner_data(limit=200)
-    print("----- Match List ----")
-    summoners_data_list = api_service.fetch_summoner_match(
-        summoners_data_list, MinioWriter("league-of-data-raw")
-    )
-    matchs_unique = api_service.filter_unique_match_id(summoners_data_list)
-    api_service.fetch_match_detail(matchs_unique, MinioWriter("league-of-data-raw"))
+    with futures.ThreadPoolExecutor() as executor:
+        executor.submit(api_service.fetch_summoner_mastery, summoners_data_list, writer)
+        future_summoners_data_list = executor.submit(
+            api_service.fetch_summoner_match, summoners_data_list, writer, 10
+        )
+        summoners_data_list = future_summoners_data_list.result()
+        executor.submit(
+            api_service.fetch_match_detail,
+            summoners_data_list,
+            writer,
+        )
+        executor.submit(
+            api_service.fetch_match_timeline,
+            summoners_data_list,
+            writer,
+        )
 
 
 if __name__ == "__main__":
