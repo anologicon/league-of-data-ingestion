@@ -7,3 +7,4 @@ RUN apt-get update && \
     openjdk-11-jre
 
 RUN pip install pyspark==3.3.0
+RUN pip install delta-spark

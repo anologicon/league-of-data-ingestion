@@ -15,8 +15,10 @@ def spark_bronze_etl():
         task_id='summoner_details_to_parquet', 
         conn_id='spark',
         application="./dags/spark/to_parquet.py",
-        packages="com.amazonaws:aws-java-sdk:1.11.563,com.amazonaws:aws-java-sdk-bundle:1.11.874,org.apache.hadoop:hadoop-aws:3.3.2",
+        packages="com.amazonaws:aws-java-sdk:1.11.563,com.amazonaws:aws-java-sdk-bundle:1.11.874,org.apache.hadoop:hadoop-aws:3.3.2,io.delta:delta-core_2.12:2.1.0",
         conf={
+            "spark.sql.extensions": "io.delta.sql.DeltaSparkSessionExtension",
+            "spark.sql.catalog.spark_catalog": "org.apache.spark.sql.delta.catalog.DeltaCatalog",
             "spark.hadoop.fs.s3a.multipart.size": "838860800",
             "spark.hadoop.fs.s3a.aws.credentials.provider": "org.apache.hadoop.fs.s3a.SimpleAWSCredentialsProvider",
             "spark.hadoop.fs.s3a.path.style.access": True
