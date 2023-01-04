@@ -21,7 +21,7 @@ def main():
         LeagueOfLegendsRepository(BaseRequestService()), MAX_MATCHES, CHUNK_SIZE
     )
     writer = MinioWriter("league-of-data-raw")
-    summoners_data_list = api_service.fetch_summoner_data(limit=200)
+    summoners_data_list = api_service.fetch_summoner_data(limit=5)
     with futures.ThreadPoolExecutor() as executor:
         executor.submit(api_service.fetch_summoner_mastery, summoners_data_list, writer)
         future_summoners_data_list = executor.submit(

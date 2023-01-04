@@ -4,7 +4,10 @@ import datetime
 from typing import List
 import json
 from .writer_interface import WriterInterface
+import os
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class MinioWriter(WriterInterface):
     def __init__(self, bucket_name: str):
@@ -12,7 +15,7 @@ class MinioWriter(WriterInterface):
         self.tempfile = NamedTemporaryFile()
         self.client = boto3.client(
             "s3",
-            endpoint_url="http://localhost:9000",
+            endpoint_url=os.environ["MINIO_URL"],
             aws_access_key_id="minio-root-user",
             aws_secret_access_key="minio-root-password",
             aws_session_token=None,
