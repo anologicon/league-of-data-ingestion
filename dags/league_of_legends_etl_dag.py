@@ -23,7 +23,7 @@ def league_of_legends_etl():
     
     @task()
     def extract_summoners():
-        return api_service.fetch_summoner_data(limit=5)
+        return api_service.fetch_summoner_data(limit=200)
 
     @task()
     def fetch_mastery(summoner_list):
@@ -33,11 +33,11 @@ def league_of_legends_etl():
     def fetch_match_id_data(summoner_list):
         return api_service.fetch_summoner_match(summoner_list, writer, 10)
     
-    @task()
+    @task(task_id="match_detail", retries=2)
     def fetch_match_detail(summoner_list_with_match_id):
         api_service.fetch_match_detail(summoner_list_with_match_id, writer)
         
-    @task()
+    @task(task_id="match_timeline", retries=2)
     def fetch_match_timeline(summoner_list_with_match_id):
         api_service.fetch_match_timeline(summoner_list_with_match_id, writer)
     
