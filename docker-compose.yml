@@ -6,7 +6,7 @@ services:
     environment:
       - MINIO_ROOT_USER=minio-root-user
       - MINIO_ROOT_PASSWORD=minio-root-password
-      - MINIO_DEFAULT_BUCKETS=league-of-data-raw
+      - MINIO_DEFAULT_BUCKETS=league-of-data-raw,league-of-data-bronze,league-of-data-gold,league-of-data-silver
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -38,7 +38,7 @@ services:
       - "8081:8081"
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
-      - SPARK_WORKER_CORES=3
+      - SPARK_WORKER_CORES=5
       - PYSPARK_PYTHON=python3
       - SPARK_WORKER_MEMORY=5G
       - SPARK_DRIVER_MEMORY=5G
