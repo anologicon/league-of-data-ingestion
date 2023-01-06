@@ -20,7 +20,7 @@ def main():
     api_service = APIService(
         LeagueOfLegendsRepository(BaseRequestService()), MAX_MATCHES, CHUNK_SIZE
     )
-    writer = MinioWriter("league-of-data-raw")
+    writer = MinioWriter("league-of-data-bronze")
     summoners_data_list = api_service.fetch_summoner_data(limit=5)
     with futures.ThreadPoolExecutor() as executor:
         executor.submit(api_service.fetch_summoner_mastery, summoners_data_list, writer)

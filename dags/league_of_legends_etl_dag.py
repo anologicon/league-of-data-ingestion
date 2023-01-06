@@ -2,6 +2,7 @@ import datetime
 import pendulum
 from airflow import models
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.bash import BashOperator
 from airflow.operators.dagrun_operator import TriggerDagRunOperator
 from airflow.decorators import dag, task
 from data_colector.service.api.api_service import APIService
@@ -9,10 +10,11 @@ from data_colector.repository.league_of_legends_repository import LeagueOfLegend
 from repository.data_writer.minio_writer import MinioWriter
 from data_colector.service.base_request_service import BaseRequestService
 
+
 api_service = APIService(
     LeagueOfLegendsRepository(BaseRequestService()), 10, 5
 )
-writer = MinioWriter("league-of-data-raw")
+writer = MinioWriter("league-of-data-bronze")
 
 @dag(
     schedule=None,
@@ -41,13 +43,41 @@ def league_of_legends_etl():
     def fetch_match_timeline(summoner_list_with_match_id):
         api_service.fetch_match_timeline(summoner_list_with_match_id, writer)
     
+    @task()
+    def fetch_static_data():
+        from requests import get
+        
+        versions = get("https://ddragon.leagueoflegends.com/api/versions.json").json()
+        last_version = versions[0]
+
+        champions_pt_br = get(f"http://ddragon.leagueoflegends.com/cdn/{last_version}/data/pt_BR/champion.json").json()
+        items_pt_br = get(f"http://ddragon.leagueoflegends.com/cdn/{last_version}/data/pt_BR/item.json").json()
+        spell_summoner_pt_br = get(f"http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/summoner.json").json()
+
+        writer.write(
+            f'static_data/version={last_version}/champions',
+            champions_pt_br,
+        )
+
+        writer.write(
+            f'static_data/version={last_version}/items',
+            items_pt_br,
+        )
+
+        writer.write(
+            f'static_data/version={last_version}/spell',
+            spell_summoner_pt_br,
+        )
+    
     spark_jobs_dag = TriggerDagRunOperator(
         task_id='trigger_spark_etl',
         trigger_dag_id='spark_bronze_etl'
     )
     
+    dummy = DummyOperator(task_id="start")
     
-    summoner_list = extract_summoners()
+    
+    _, summoner_list = dummy >> [fetch_static_data(), extract_summoners()]
     _, summoner_with_match_list = [fetch_mastery(summoner_list), fetch_match_id_data(summoner_list)]
     [fetch_match_detail(summoner_with_match_list), fetch_match_timeline(summoner_with_match_list)] >> spark_jobs_dag  
     

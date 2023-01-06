@@ -19,7 +19,7 @@ hadoop_conf.set("fs.s3a.access.key", "OhLfedtD1ulumaig")
 hadoop_conf.set("fs.s3a.secret.key", "IuWsU1j3YvArUAS26VDOvRPnLYLWUXBo")
 hadoop_conf.set("fs.s3a.path.style.access", "True")
 
-summoners_df = spark.read.json("s3a://league-of-data-raw/")
+summoners_df = spark.read.json("s3a://league-of-data-bronze/")
 details = summoners_df.select("summoner_detail")
 
-details.write.parquet("s3a://league-of-data-raw/silver/details.parquet")
+details.write.parquet("s3a://league-of-data-bronze/silver/details.parquet")

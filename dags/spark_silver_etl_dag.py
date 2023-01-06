@@ -24,7 +24,7 @@ def spark_bronze_etl():
     summoner_details_to_parquet = SparkSubmitOperator(
         task_id='summoner_details_to_parquet', 
         conn_id='spark',
-        application="./dags/spark/summoner_details_bronze_to_parquet.py",
+        application="./dags/spark/summoner_details_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
         name="SummonerDetailsDataToBronze"
@@ -33,7 +33,7 @@ def spark_bronze_etl():
     summoner_matches_to_parquet = SparkSubmitOperator(
         task_id='summoner_matches_to_parquet', 
         conn_id='spark',
-        application="./dags/spark/summoner_matches_bronze_to_parquet.py",
+        application="./dags/spark/summoner_matches_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
         name="SummonerMatchesDataToBronze"
@@ -42,16 +42,16 @@ def spark_bronze_etl():
     matches_to_parquet = SparkSubmitOperator(
         task_id='matches_to_parquet', 
         conn_id='spark',
-        application="./dags/spark/matches_bronze_to_parquet.py",
+        application="./dags/spark/matches_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
         name="MatchesDataToBronze"
     )
     
-    mastery_bronze_to_parquet = SparkSubmitOperator(
-        task_id='mastery_bronze_to_parquet', 
+    mastery_silver_to_parquet = SparkSubmitOperator(
+        task_id='mastery_silver_to_parquet', 
         conn_id='spark',
-        application="./dags/spark/mastery_bronze_to_parquet.py",
+        application="./dags/spark/mastery_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
         name="MatchesDataToBronze"
@@ -59,6 +59,6 @@ def spark_bronze_etl():
     
     dummy = DummyOperator(task_id='dummy_start')
     
-    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet, mastery_bronze_to_parquet]  
+    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet, mastery_silver_to_parquet]  
     
 spark_bronze_etl()

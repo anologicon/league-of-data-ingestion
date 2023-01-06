@@ -1,12 +1,24 @@
 version: '3.6'
 
 services:
+  data_warehouse:
+    image: postgres:13
+    container_name: data_warehouse
+    environment:
+      POSTGRES_USER: data_lol
+      POSTGRES_PASSWORD: data_lol
+      POSTGRES_DB: data_lol_dw
+    volumes:
+      - dw-db-volume:/var/lib/postgresql/data
+    ports:
+      - '5430:5432'
+    restart: always
   minio:
     image: 'bitnami/minio:latest'
     environment:
       - MINIO_ROOT_USER=minio-root-user
       - MINIO_ROOT_PASSWORD=minio-root-password
-      - MINIO_DEFAULT_BUCKETS=league-of-data-raw,league-of-data-bronze,league-of-data-gold,league-of-data-silver
+      - MINIO_DEFAULT_BUCKETS=league-of-data-bronze,league-of-data-gold,league-of-data-silver
     ports:
       - '9000:9000'
       - '9001:9001'
@@ -38,13 +50,11 @@ services:
       - "8081:8081"
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
-      - SPARK_WORKER_CORES=5
-      - PYSPARK_PYTHON=python3
-      - SPARK_WORKER_MEMORY=5G
-      - SPARK_DRIVER_MEMORY=5G
-      - SPARK_EXECUTOR_MEMORY=5G
       - SPARK_HOME=/spark
       
+volumes:
+  postgres-db-volume:
+
 networks:
   default:
     name: lol-data
