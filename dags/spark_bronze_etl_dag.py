@@ -48,10 +48,17 @@ def spark_bronze_etl():
         name="MatchesDataToBronze"
     )
     
+    mastery_bronze_to_parquet = SparkSubmitOperator(
+        task_id='mastery_bronze_to_parquet', 
+        conn_id='spark',
+        application="./dags/spark/mastery_bronze_to_parquet.py",
+        packages=PACKAGES,
+        conf=CONFIG,
+        name="MatchesDataToBronze"
+    )
     
     dummy = DummyOperator(task_id='dummy_start')
     
-    
-    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet]  
+    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet, mastery_bronze_to_parquet]  
     
 spark_bronze_etl()

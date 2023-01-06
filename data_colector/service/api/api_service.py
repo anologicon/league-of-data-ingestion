@@ -110,7 +110,7 @@ class APIService:
             )
             writer.write(
                 f'summoners/mastery/summoner={summoner["summoner_data"]["summonerId"]}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{summoner["summoner_data"]["summonerId"]}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
-                summoner,
+                summoner_mastery_data,
             )
 
     def __summoner_has_special_characters(self, summoner_name: str):
