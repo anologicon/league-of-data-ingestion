@@ -18,4 +18,6 @@ hadoop_conf.set("fs.s3a.path.style.access", "True")
 
 matchs_df = spark.read.json("s3a://league-of-data-bronze/matchs/detail")
 match_info_df = matchs_df.select(col("info.*"), col("match"), col("extracted_at"))
-match_info_df.write.mode("overwrite").partitionBy("match", "extracted_at").format("delta").save("s3a://league-of-data-silver/match/detail/")
+match_info_df.write.mode("overwrite").partitionBy("match", "extracted_at").format(
+    "delta"
+).save("s3a://league-of-data-silver/match/detail/")

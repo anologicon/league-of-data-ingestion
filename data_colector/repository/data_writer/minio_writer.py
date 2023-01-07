@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class MinioWriter(WriterInterface):
     def __init__(self, bucket_name: str):
         self.bucket = bucket_name
