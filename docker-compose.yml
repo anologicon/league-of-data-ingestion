@@ -53,7 +53,7 @@ services:
       - SPARK_HOME=/spark
       
 volumes:
-  postgres-db-volume:
+  dw-db-volume:
 
 networks:
   default:

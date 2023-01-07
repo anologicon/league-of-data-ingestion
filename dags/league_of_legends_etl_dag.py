@@ -54,24 +54,20 @@ def league_of_legends_etl():
         items_pt_br = get(f"http://ddragon.leagueoflegends.com/cdn/{last_version}/data/pt_BR/item.json").json()
         spell_summoner_pt_br = get(f"http://ddragon.leagueoflegends.com/cdn/{last_version}/data/en_US/summoner.json").json()
 
-        writer.write(
-            f'static_data/version={last_version}/champions',
-            champions_pt_br,
-        )
+        static_data = {
+            "champion_data": champions_pt_br,
+            "items_data": items_pt_br,
+            "spell_data": spell_summoner_pt_br
+        }
 
         writer.write(
-            f'static_data/version={last_version}/items',
-            items_pt_br,
+            f'static_data/version={last_version}/static_data',
+            static_data,
         )
-
-        writer.write(
-            f'static_data/version={last_version}/spell',
-            spell_summoner_pt_br,
-        )
-    
+        
     spark_jobs_dag = TriggerDagRunOperator(
         task_id='trigger_spark_etl',
-        trigger_dag_id='spark_bronze_etl'
+        trigger_dag_id='spark_silver_etl'
     )
     
     dummy = DummyOperator(task_id="start")

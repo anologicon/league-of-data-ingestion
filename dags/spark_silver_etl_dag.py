@@ -2,6 +2,7 @@ import datetime
 import pendulum
 from airflow import models
 from airflow.operators.dummy import DummyOperator
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
 from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
 from airflow.decorators import dag, task
 
@@ -19,7 +20,7 @@ CONFIG = {
     start_date=pendulum.datetime(2023, 1, 1, tz="UTC"),
     catchup=False
 )
-def spark_bronze_etl():     
+def spark_silver_etl():     
     
     summoner_details_to_parquet = SparkSubmitOperator(
         task_id='summoner_details_to_parquet', 
@@ -27,7 +28,8 @@ def spark_bronze_etl():
         application="./dags/spark/summoner_details_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
-        name="SummonerDetailsDataToBronze"
+        name="SummonerDetailsDataToBronze",
+        retries=2
     )
     
     summoner_matches_to_parquet = SparkSubmitOperator(
@@ -36,7 +38,8 @@ def spark_bronze_etl():
         application="./dags/spark/summoner_matches_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
-        name="SummonerMatchesDataToBronze"
+        name="SummonerMatchesDataToBronze",
+        retries=2
     )
     
     matches_to_parquet = SparkSubmitOperator(
@@ -45,7 +48,8 @@ def spark_bronze_etl():
         application="./dags/spark/matches_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
-        name="MatchesDataToBronze"
+        name="MatchesDataToBronze",
+        retries=2
     )
     
     mastery_silver_to_parquet = SparkSubmitOperator(
@@ -54,11 +58,17 @@ def spark_bronze_etl():
         application="./dags/spark/mastery_silver_to_parquet.py",
         packages=PACKAGES,
         conf=CONFIG,
-        name="MatchesDataToBronze"
+        name="MatchesDataToBronze",
+        retries=2
+    )
+    
+    spark_gold_jobs_dag = TriggerDagRunOperator(
+        task_id='trigger_gold_spark_etl',
+        trigger_dag_id='spark_gold_etl'
     )
     
     dummy = DummyOperator(task_id='dummy_start')
     
-    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet, mastery_silver_to_parquet]  
+    dummy >> [summoner_details_to_parquet, summoner_matches_to_parquet, matches_to_parquet, mastery_silver_to_parquet]  >> spark_gold_jobs_dag
     
-spark_bronze_etl()
+spark_silver_etl()
