@@ -19,7 +19,7 @@ summoner_matches_df = spark.read.format("delta").load(
     "s3a://league-of-data-silver/summoner/matches"
 )
 matches_df = spark.read.format("delta").load("s3a://league-of-data-silver/match/detail")
-matches_df = matches_df.dropDuplicates(["match", "extracted_at"])
+matches_df = matches_df.dropDuplicates(["match"])
 match_data_df = (
     matches_df.withColumn("participants", explode(matches_df.participants))
     .select(
