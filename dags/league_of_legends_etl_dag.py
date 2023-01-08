@@ -29,7 +29,7 @@ def league_of_legends_etl():
 
     @task()
     def fetch_match_id_data(summoner_list):
-        return api_service.fetch_summoner_match(summoner_list, writer, 10)
+        return api_service.filter_unique_match_id(api_service.fetch_summoner_match(summoner_list, writer, 10))
 
     @task(task_id="match_detail", retries=2)
     def fetch_match_detail(summoner_list_with_match_id):

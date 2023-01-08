@@ -20,7 +20,7 @@ class LeagueOfLegendsRepository:
     )
     MATCH_DATA = "match/v5/matches/{}"
     MATCH_TIME_LINE = "match/v5/matches/{}/timeline"
-    SUMMONER_DATA = "summoner/v4/summoners/by-name/{}"
+    SUMMONER_DATA = "summoner/v4/summoners/{}"
     MATCHES_IDS = "match/v5/matches/by-puuid/{}/ids?type=ranked&start={}&count={}"
     CHAMPIONS_MASTERY = "champion-mastery/v4/champion-masteries/by-summoner/{}"
 
@@ -51,7 +51,7 @@ class LeagueOfLegendsRepository:
     def fetch_summoner_details(self, summoner):
         try:
             return self.request_service.brazil_request(
-                self.SUMMONER_DATA.format(summoner["summonerName"])
+                self.SUMMONER_DATA.format(summoner["summonerId"])
             )
         except requests.exceptions.HTTPError as e:
             if e.response.status_code == 404:

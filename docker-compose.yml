@@ -1,6 +1,13 @@
 version: '3.6'
 
 services:
+  metabase:
+    image: metabase/metabase
+    ports:
+      - 3000:3000
+    volumes:
+      - ./meta_base:/metabase-data
+
   data_warehouse:
     image: postgres:13
     container_name: data_warehouse
@@ -22,6 +29,8 @@ services:
     ports:
       - '9000:9000'
       - '9001:9001'
+    volumes:
+      - ./minio_data:/data
   jupyter:
     build: ./spark-scripts/docker/jupyter
     ports:

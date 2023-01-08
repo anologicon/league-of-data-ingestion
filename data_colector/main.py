@@ -27,7 +27,7 @@ def main():
         future_summoners_data_list = executor.submit(
             api_service.fetch_summoner_match, summoners_data_list, writer, 10
         )
-        summoners_data_list = future_summoners_data_list.result()
+        summoners_data_list = api_service.filter_unique_match_id(future_summoners_data_list.result())
         executor.submit(
             api_service.fetch_match_detail,
             summoners_data_list,

@@ -29,8 +29,6 @@ class APIService:
 
         summoner_with_details = []
         for summoner in tqdm(summoners_list, desc="Fetch Summoner Details"):
-            if self.__summoner_has_special_characters(summoner["summonerName"]):
-                continue
             summoner_with_detail = (
                 self.league_of_legends_repository.fetch_summoner_details(summoner)
             )
@@ -81,9 +79,7 @@ class APIService:
         return list(dict.fromkeys(all_match_list))
 
     def fetch_match_detail(self, match_ids, writer: WriterInterface) -> List:
-        for match_id in tqdm(
-            self.filter_unique_match_id(match_ids), desc="Fetch Match Details"
-        ):
+        for match_id in tqdm(match_ids, desc="Fetch Match Details"):
             match_details = self.league_of_legends_repository.fetch_match_data(match_id)
             writer.write(
                 f'matchs/detail/match={match_id}/extracted_at={datetime.datetime.now().strftime("%Y-%m-%d")}/{match_id}_{datetime.datetime.now().strftime("%Y-%m-%d")}',
@@ -92,7 +88,7 @@ class APIService:
 
     def fetch_match_timeline(self, match_ids, writer: WriterInterface) -> List:
         for match_id in tqdm(
-            self.filter_unique_match_id(match_ids), desc="Fetch Match Timeline"
+            match_ids, desc="Fetch Match Timeline"
         ):
             match_timeline = self.league_of_legends_repository.fetch_match_time_line(
                 match_id

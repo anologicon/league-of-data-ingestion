@@ -40,11 +40,12 @@ matchs_game_creation_df.write.mode("overwrite").format("jdbc").option(
 ).option(
     "password", "data_lol"
 ).save()
+matchs_game_creation_df.write.option("header",True).csv("/matchs_data")
 
 summoner_df = spark.read.format("delta").load(
     "s3a://league-of-data-gold/summoner/detail"
 )
-
+summoner_df.write.option("header",True).csv("/summoner_data")
 summoner_df.write.mode("overwrite").format("jdbc").option(
     "url", "jdbc:postgresql://data_warehouse:5432/data_lol_dw"
 ).option("driver", "org.postgresql.Driver").option("dbtable", "summoner_detail").option(
