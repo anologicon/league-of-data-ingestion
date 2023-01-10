@@ -21,7 +21,7 @@ writer = MinioWriter("league-of-data-bronze")
 def league_of_legends_etl():
     @task()
     def extract_summoners():
-        return api_service.fetch_summoner_data(limit=200)
+        return api_service.fetch_summoner_data()
 
     @task()
     def fetch_mastery(summoner_list):
