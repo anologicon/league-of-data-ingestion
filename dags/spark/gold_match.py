@@ -11,8 +11,8 @@ sc = spark
 hadoop_conf = sc._jsc.hadoopConfiguration()
 hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
 hadoop_conf.set("fs.s3a.endpoint", os.environ["MINIO_URL"])
-hadoop_conf.set("fs.s3a.access.key", "minio-root-user")
-hadoop_conf.set("fs.s3a.secret.key", "minio-root-password")
+hadoop_conf.set("fs.s3a.access.key", "minio-root-user") # senha default do container minio
+hadoop_conf.set("fs.s3a.secret.key", "minio-root-password") # senha default do container minio
 hadoop_conf.set("fs.s3a.path.style.access", "True")
 
 summoner_matches_df = spark.read.format("delta").load(
