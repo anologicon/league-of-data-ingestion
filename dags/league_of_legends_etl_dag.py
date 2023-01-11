@@ -13,7 +13,7 @@ from repository.data_writer.minio_writer import MinioWriter
 from data_colector.service.base_request_service import BaseRequestService
 
 
-api_service = APIService(LeagueOfLegendsRepository(BaseRequestService()), 10, 5)
+api_service = APIService(LeagueOfLegendsRepository(BaseRequestService()), 100, 10)
 writer = MinioWriter("league-of-data-bronze")
 
 
