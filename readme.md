@@ -2,6 +2,8 @@
 
 Projeto para a pratica de criação de data pipelines. Buscando os dados dos desafiantes do Brasil, e suas ultimas partidas, armazenando em um data lake local. A ideia é coletar dados dos jogadores de league of legends e analisar, um exemplo é entender nossos jogares challengers, quem sabe não só do Brasil mas de outros servers.
 
+Link para o post explicando [post](https://www.linkedin.com/pulse/criei-um-pipeline-de-dados-com-api-do-jogo-league-legends-raimundi/?published=t&trackingId=5OFjQqrVSz2pcQ0DstwORA%3D%3D)
+
 ## Arquitetura
 ![image info](./images/arquitetura.png)
 
