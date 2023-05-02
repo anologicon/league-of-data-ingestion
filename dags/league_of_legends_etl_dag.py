@@ -14,7 +14,6 @@ def league_of_legends_etl():
       image='anologicon/lodi-data-collector:v1',
       force_pull=True,
       command='python main.py',
-      privileged=True,
       network_mode='lol-data',
       environment={
           'MINIO_URL': os.environ['MINIO_URL'],
