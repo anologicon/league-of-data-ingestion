@@ -9,12 +9,10 @@ RUN apt-get update && \
 
 # Prints installed java version, just for checking
 RUN java --version
-ENV PYTHONPATH=${PYTHONPATH}:/opt/airflow/data_colector
 
 USER airflow
 RUN python -m pip install --upgrade pip
 RUN pip install pyspark==3.3.0
 RUN pip install delta-spark
 RUN pip install apache-airflow-providers-apache-spark==3.0.0
-COPY requirements.txt /
-RUN pip install --no-cache-dir -r /requirements.txt
+RUN pip install pip install apache-airflow-providers-docker==3.6.0
