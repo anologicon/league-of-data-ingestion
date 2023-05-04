@@ -19,7 +19,7 @@ hadoop_conf.set("fs.s3a.path.style.access", "True")
 mastery_df = spark.read.json("s3a://league-of-data-bronze/summoners/mastery")
 summoners_df = spark.read.json("s3a://league-of-data-bronze/summoners/details")
 summoners_id_df = summoners_df.select(
-    col("summoner_detail.id"), col("summoner_detail.puuid")
+    col("summoner_detail.id")
 ).distinct()
 mastery_puuid_df = mastery_df.join(
     summoners_id_df, mastery_df.summonerId == summoners_id_df.id, how="left"

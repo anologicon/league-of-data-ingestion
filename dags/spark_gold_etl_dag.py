@@ -1,10 +1,7 @@
-import datetime
 import pendulum
-from airflow import models
-from airflow.operators.dummy import DummyOperator
-from airflow.contrib.operators.spark_submit_operator import SparkSubmitOperator
-from airflow.decorators import dag, task
-
+from airflow.operators.empty import EmptyOperator
+from airflow.decorators import dag
+from airflow.providers.apache.spark.operators.spark_submit import SparkSubmitOperator
 
 PACKAGES = "com.amazonaws:aws-java-sdk:1.11.563,com.amazonaws:aws-java-sdk-bundle:1.11.874,org.apache.hadoop:hadoop-aws:3.3.2,io.delta:delta-core_2.12:2.1.0"
 CONFIG = {
@@ -49,7 +46,7 @@ def spark_gold_etl():
         retries=2,
     )
 
-    dummy = DummyOperator(task_id="dummy_start")
+    dummy = EmptyOperator(task_id="dummy_start")
 
     dummy >> [summoner_details, summoner_matches] >> to_dw
 

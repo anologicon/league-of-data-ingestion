@@ -1,7 +1,5 @@
-import datetime
 import pendulum
-from airflow import models
-from airflow.decorators import dag, task
+from airflow.decorators import dag
 from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.providers.docker.operators.docker import DockerOperator
 import os
