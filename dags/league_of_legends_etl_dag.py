@@ -17,7 +17,7 @@ def league_of_legends_etl():
           'MINIO_URL': os.environ['MINIO_URL'],
           'LOL_API_KEY': os.environ['LOL_API_KEY']
       },
-      docker_url="unix://var/run/docker.sock",
+      docker_url='tcp://docker-proxy:2375',
       api_version='auto',
       mount_tmp_dir=False
   )

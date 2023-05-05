@@ -1,12 +1,10 @@
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
-from pyspark.sql.types import *
-from pyspark.sql import functions as F
-from pyspark.sql.functions import regexp_extract
-from functools import partial
+from pyspark import SparkConf, SparkContext
 import os
 
-spark = SparkSession.builder.getOrCreate()
+spark = SparkSession(SparkContext(conf=SparkConf()).getOrCreate())
+
 spark.sparkContext.setLogLevel("ERROR")
 sc = spark
 hadoop_conf = sc._jsc.hadoopConfiguration()
@@ -22,7 +20,7 @@ summoners_id_df = summoners_df.select(
     col("summoner_detail.id")
 ).distinct()
 mastery_puuid_df = mastery_df.join(
-    summoners_id_df, mastery_df.summonerId == summoners_id_df.id, how="left"
+    summoners_id_df, mastery_df.summonerId == summoners_id_df.id
 )
 mastery_puuid_df.write.mode("overwrite").partitionBy("puuid", "extracted_at").format(
     "delta"
