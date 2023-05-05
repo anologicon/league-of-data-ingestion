@@ -42,6 +42,7 @@ services:
     container_name: spark-master
     volumes:
       - ./spark-scripts:/app
+      - ./dags/spark:/app/spark
     ports:
       - "8080:8080"
       - "7077:7077"
@@ -49,6 +50,9 @@ services:
     environment:
       - PYSPARK_PYTHON=python3
       - SPARK_HOME=/spark
+      - MINIO_URL=http://minio:9000
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
 
   spark-worker-1:
     build: ./spark-scripts/docker/spark-worker
@@ -60,6 +64,9 @@ services:
     environment:
       - "SPARK_MASTER=spark://spark-master:7077"
       - SPARK_HOME=/spark
+      - MINIO_URL=http://minio:9000
+      - SPARK_WORKER_CORES=1
+      - SPARK_WORKER_MEMORY=1G
       
 volumes:
   dw-db-volume:
