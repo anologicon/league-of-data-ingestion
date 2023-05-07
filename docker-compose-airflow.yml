@@ -48,6 +48,11 @@ x-airflow-common:
   # build: .
   env_file:
      - ./.env
+  deploy:
+    resources:
+      limits:
+        cpus: "4"
+        memory: 2G
   environment:
     &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: CeleryExecutor
