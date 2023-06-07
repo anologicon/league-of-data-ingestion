@@ -1,6 +1,8 @@
 from pyspark import SparkConf
 from pyspark.sql import SparkSession
 from pyspark.sql.functions import *
+from delta.tables import *
+from pyspark.sql.utils import AnalysisException
 import os
 
 spark = SparkSession(SparkContext(conf=SparkConf()).getOrCreate())
@@ -49,31 +51,20 @@ summer_details_duplicates.createTempView('summer_bronze_deduplicate_temp')
 dont_exists = True
 
 try:
-    summer_details_silver = spark.read.format('delta').load("s3a://league-of-data-silver/summoner/detail/")
-except Exception as e:
-    dont_exists = False
-
+    summer_details_silver = DeltaTable.forPath(spark, 's3a://league-of-data-silver/summoner/detail/')
+except AnalysisException as e:
+    if 'is not a Delta table' in str(e):
+        dont_exists = False
 
 if dont_exists:
-    summer_details_silver.createOrReplaceTempView('summer_details_silver')
-    upsert_data = spark.sql("""
-        WITH silver AS (
-            SELECT 
-                *
-                ,ROW_NUMBER() OVER (PARTITION BY accountId ORDER BY extracted_at DESC) as row_number
-            FROM summer_details_silver
-        ), silver_deduplicate AS (
-            SELECT * FROM silver WHERE row_number = 1
-        )
-        SELECT new_data.* FROM silver_deduplicate AS old 
-        LEFT JOIN summer_bronze_deduplicate_temp as new_data ON new_data.summonerId = old.summonerId
-        WHERE new_data.summonerId IS NULL OR ((new_data.wins + new_data.losses) > (old.wins + old.losses))
-    """)
-    print(f'New or update summers {upsert_data.count()}')
-    upsert_data.write.mode("append").partitionBy("puuid").format(
-        "delta"
-    ).save("s3a://league-of-data-silver/summoner/detail/")
+    print('Merge')
+    summer_details_silver.alias("d").merge(
+        summer_details_duplicates.alias("n"),
+        "d.summonerId = n.summonerId AND (d.wins + d.losses) > (n.wins + n.losses)"
+    ).whenNotMatchedInsertAll() \
+    .execute()
 else:
+    print('First load')
     summer_details_duplicates.write.mode("overwrite").partitionBy("puuid").format(
         "delta"
     ).save("s3a://league-of-data-silver/summoner/detail/")
